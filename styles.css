@@ -733,12 +733,13 @@ h1, h2, h3 {
 .room-picker {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.35rem;
   padding: 0.75rem;
   background: var(--deep);
 }
 .room-btn {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 44px;
   padding: 0.7rem 0.9rem;
   border-radius: 999px;
@@ -843,7 +844,6 @@ h1, h2, h3 {
 .price-note { margin-top: 1rem; text-align: center; font-size: 0.88rem; color: var(--muted); }
 .price-panel .btn { margin-top: 1rem; }
 
-.quote-cards { display: grid; gap: 1rem; }
 .quote-card {
   display: flex;
   flex-direction: column;
@@ -878,7 +878,7 @@ h1, h2, h3 {
 .addon-list li { font-size: 0.95rem; line-height: 1.4; font-weight: 500; color: var(--deep); }
 /* Phones show the add-on names only, to keep the page short */
 .addon-how { display: none; font-weight: 400; color: var(--muted); }
-.quote-card .link-arrow { padding-top: 0.9rem; }
+.addon-list + .link-arrow, .chip-list + .link-arrow { padding-top: 0.9rem; }
 
 @media (min-width: 640px) {
   .quote-card { padding: clamp(1.4rem, 3vw, 2rem); }
@@ -940,7 +940,20 @@ h1, h2, h3 {
 }
 @media (min-width: 880px) {
   .pricing-grid { grid-template-columns: 1.3fr 1fr; align-items: stretch; }
-  .quote-cards { grid-template-rows: 1fr 1fr; }
+  /* The panel and the add-ons card are nearly the same height, so they sit side by side
+     and stretch to match. Scheduling becomes a slim strip across the full width. */
+  .quote-card--schedule {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.5rem 1.5rem;
+    padding: 1.1rem clamp(1.4rem, 3vw, 2rem);
+  }
+  .quote-card--schedule .quote-card-top { display: flex; align-items: baseline; gap: 0.6rem; }
+  .quote-card--schedule .quote-big { margin-top: 0; }
+  .quote-card--schedule .chip-list { margin-top: 0; }
+  .quote-card--schedule .link-arrow { margin-top: 0; padding-top: 0; }
 }
 @media (hover: hover) {
   .link-arrow:hover { text-decoration: underline; text-underline-offset: 4px; }
@@ -979,11 +992,11 @@ h1, h2, h3 {
 @media (min-width: 340px) {
   .fit-grid { grid-template-columns: repeat(2, 1fr); }
 }
-/* Phones: the call-to-action card gets its own full-width row */
-.fit-item--cta { grid-column: 1 / -1; }
+/* Phones: the fifth tile and the call-to-action card each get their own full-width row */
+.fit-item--cta, .fit-item:nth-child(5) { grid-column: 1 / -1; }
 @media (min-width: 640px) {
-  .fit-item--cta { grid-column: auto; }
-  .fit-grid { grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .fit-item--cta, .fit-item:nth-child(5) { grid-column: auto; }
+  .fit-grid { grid-template-columns: repeat(3, 1fr); align-items: start; gap: 1.25rem; }
   .fit-item { padding: 1.5rem; border-radius: 22px; }
   .fit-icon { width: 46px; height: 46px; border-radius: 14px; }
   .fit-icon .icon { width: 23px; height: 23px; }
@@ -1002,7 +1015,7 @@ h1, h2, h3 {
   content: "";
   position: absolute;
   /* Overhang is capped so the block never pokes past the screen edge on phones */
-  inset: 12% max(-7%, -16px) max(-7%, -16px) 12%;
+  inset: 12% max(-7%, -12px) max(-7%, -12px) 12%;
   z-index: -1;
   border-radius: 32px;
   background: var(--tint);
@@ -1012,7 +1025,7 @@ h1, h2, h3 {
   display: grid;
   place-items: center;
   aspect-ratio: 16 / 10;
-  padding: 12%;
+  padding: 9% 12% 26%;
   background: #fff;
   border-radius: 28px;
   box-shadow: var(--shadow-md);
@@ -1021,7 +1034,7 @@ h1, h2, h3 {
 .about-badge {
   position: absolute;
   left: -10px;
-  bottom: 22px;
+  bottom: 14px;
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -1071,7 +1084,8 @@ h1, h2, h3 {
 }
 
 @media (min-width: 640px) {
-  .about-card { aspect-ratio: 4 / 3; }
+  .about-card { aspect-ratio: 4 / 3; padding: 12%; }
+  .about-badge { bottom: 22px; }
   .stats { gap: 1.25rem; }
   .stats dt { font-size: 0.78rem; }
   .stats dd { font-size: 1.4rem; }
@@ -1239,7 +1253,7 @@ h1, h2, h3 {
 .footer-grid { display: grid; gap: 1.75rem; }
 .footer-brand { display: grid; gap: 1rem; justify-items: start; }
 /* The client's logo needs this much room to be readable */
-.footer-logo { width: 232px; height: auto; }
+.footer-logo { width: 232px; height: auto; margin-left: -12px; }   /* pulls the faint glow of the logo's edge level with the name below */
 .footer-name {
   display: block;
   font-family: var(--font-display);
@@ -1263,7 +1277,7 @@ h1, h2, h3 {
 }
 @media (min-width: 880px) {
   .footer-grid { grid-template-columns: auto 1fr auto; align-items: start; }
-  .footer-nav { justify-content: center; }
+  .footer-nav { display: grid; grid-template-columns: repeat(3, auto); justify-content: center; gap: 0 1.6rem; }
 }
 
 /* ============================================================
@@ -1303,7 +1317,8 @@ h1, h2, h3 {
   .rooms-grid .rv:nth-child(2) { --d: 90ms; }
   .rooms-grid .rv:nth-child(3) { --d: 180ms; }
   .rooms-grid .rv:nth-child(4) { --d: 270ms; }
-  .quote-cards .rv:nth-child(2) { --d: 90ms; }
+  .pricing-grid > .rv:nth-child(2) { --d: 90ms; }
+  .pricing-grid > .rv:nth-child(3) { --d: 180ms; }
   .fit-grid .rv:nth-child(2) { --d: 60ms; }
   .fit-grid .rv:nth-child(3) { --d: 120ms; }
   .fit-grid .rv:nth-child(4) { --d: 180ms; }
