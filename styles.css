@@ -154,6 +154,13 @@ h1, h2, h3 {
 .no-break { white-space: nowrap; }
 
 /* ---------- Scroll reveal (only when JS is available) ---------- */
+/* A card that both reveals and lifts on hover lists both sets of properties, with the
+   stagger delay applied to the reveal only */
+.js .room-card.rv {
+  transition: opacity 0.55s var(--ease-out), translate 0.55s var(--ease-out),
+              transform 0.3s var(--ease-out), box-shadow 0.3s ease, border-color 0.3s ease;
+  transition-delay: var(--d, 0ms), var(--d, 0ms), 0ms, 0ms, 0ms;
+}
 .js .rv {
   opacity: 0;
   translate: 0 16px;
@@ -279,8 +286,49 @@ h1, h2, h3 {
   .logo-text { font-size: 1rem; }
 }
 
-/* Mobile: the nav is a dropdown card under the header */
-.nav {
+/* ---------- The links ---------- */
+/* Without JavaScript the links simply show. With it, on phones and tablets, they fold
+   into a card that opens from the menu button. Nothing is hidden unless JS is running. */
+.nav { display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.9rem; }
+.nav > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--deep);
+}
+.nav-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.9rem; }
+.nav-mail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--deep);
+}
+.nav-mail .icon { color: var(--action-text); }
+.header-mail, .header-cta { display: none; }
+
+.nav-toggle {
+  order: 10;   /* sits at the right-hand end of the row, though it comes before the links */
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: auto;
+  border-radius: 50%;
+  color: var(--deep);
+}
+.nav-toggle .icon { width: 26px; height: 26px; }
+.nav-toggle .icon-close { display: none; }
+.nav-toggle[aria-expanded="true"] .icon-menu { display: none; }
+.nav-toggle[aria-expanded="true"] .icon-close { display: block; }
+
+/* With JavaScript, phones and tablets get the dropdown card under the header */
+.js .nav {
   position: fixed;
   top: 76px;
   left: 12px;
@@ -298,58 +346,30 @@ h1, h2, h3 {
   translate: 0 -10px;
   transition: opacity 0.2s ease, translate 0.25s var(--ease-out), visibility 0s linear 0.25s;
 }
-.site-header.is-open .nav {
+.js .site-header.is-open .nav {
   opacity: 1;
   visibility: visible;
   translate: 0 0;
   transition-delay: 0s;
 }
-.nav > a {
+.js .nav > a {
   display: block;
   padding: 0.8rem 1rem;
   border-radius: 12px;
   font-size: 1.1rem;
-  font-weight: 500;
-  color: var(--deep);
 }
-.nav-extra {
+.js .nav-extra {
   display: grid;
   gap: 0.4rem;
   margin-top: 0.5rem;
   padding: 0.9rem 0.35rem 0.35rem;
   border-top: 1px solid var(--line);
 }
-.nav-mail {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-height: 44px;
-  padding: 0.5rem;
-  font-size: 0.98rem;
-  font-weight: 600;
-  color: var(--deep);
-}
-.nav-mail .icon { color: var(--action-text); }
-.header-mail, .header-cta { display: none; }
-
-.nav-toggle {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  margin-left: auto;
-  border-radius: 50%;
-  color: var(--deep);
-}
-.nav-toggle .icon { width: 26px; height: 26px; }
-.nav-toggle .icon-close { display: none; }
-.nav-toggle[aria-expanded="true"] .icon-menu { display: none; }
-.nav-toggle[aria-expanded="true"] .icon-close { display: block; }
+.js .nav-mail { justify-content: center; padding: 0.5rem; }
 
 @media (min-width: 1024px) {
   .logo-text { font-size: 1.3rem; }
-  .nav {
+  .nav, .js .nav {
     position: static;
     display: flex;
     align-items: center;
@@ -366,7 +386,8 @@ h1, h2, h3 {
     translate: none;
     margin-left: auto;
   }
-  .nav > a {
+  .nav > a, .js .nav > a {
+    display: inline-flex;
     padding: 0.65rem 0.2rem;
     border-bottom: 2px solid transparent;
     border-radius: 0;
@@ -374,11 +395,17 @@ h1, h2, h3 {
     white-space: nowrap;
     transition: color 0.2s ease, border-color 0.2s ease;
   }
-  .nav-extra, .nav-toggle { display: none; }
+  /* named with its phone form on purpose: that form outranks a bare class and would show here */
+  .nav-extra, .js .nav-extra, .nav-toggle { display: none; }
   .header-cta { display: inline-flex; }
+  /* What is seen follows the order it is read in: name, links, email, button */
+  .logo { order: 1; }
+  .nav { order: 2; }
+  .header-mail { order: 3; }
+  .header-cta { order: 4; }
 }
 @media (min-width: 1240px) {
-  .nav { gap: 1.9rem; }
+  .nav, .js .nav { gap: 1.9rem; }
   .header-mail {
     display: inline-flex;
     align-items: center;
@@ -391,13 +418,20 @@ h1, h2, h3 {
     color: var(--deep);
   }
 }
+@media (max-width: 1023px) {
+  /* Without JavaScript on a phone or tablet: the links wrap onto their own row under
+     the name, and the button that could not open anything is not shown */
+  html:not(.js) .header-inner { flex-wrap: wrap; height: auto; padding-block: 0.5rem; row-gap: 0.2rem; }
+  html:not(.js) .nav { order: 3; flex-basis: 100%; }
+  html:not(.js) .nav-toggle { display: none; }
+}
 @media (hover: hover) {
   .nav > a:hover { color: var(--deep); }
-  .nav > a:hover { background: var(--porcelain); }
+  .js .nav > a:hover { background: var(--porcelain); }
   .header-mail:hover { color: var(--action-text); }
 }
 @media (min-width: 1024px) and (hover: hover) {
-  .nav > a:hover { background: none; border-bottom-color: var(--action); }
+  .nav > a:hover, .js .nav > a:hover { background: none; border-bottom-color: var(--action); }
 }
 
 /* ============================================================
@@ -752,10 +786,20 @@ h1, h2, h3 {
 .room-btn.is-active { background: var(--action); color: var(--deep); }
 
 .room-panels { padding: 1.25rem 1.5rem 1.5rem; }
+.room-title {
+  margin-bottom: 0.6rem;
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+html:not(.js) .room-picker { display: none; }
 /* With JavaScript off every list is shown; with it on, one at a time */
 .js .room-panel { display: none; }
 .js .room-panel.is-active { display: block; }
-.room-note { margin-bottom: 0.9rem; font-size: 0.92rem; line-height: 1.5; color: var(--muted); }
+.room-note { margin-bottom: 0.4rem; font-size: 0.92rem; line-height: 1.5; color: var(--muted); }
 .room-panel li {
   padding: 0.32rem 0 0.32rem 34px;
   text-indent: -34px;   /* hanging indent: the tick hangs left, wrapped lines stay aligned */
@@ -1197,9 +1241,9 @@ h1, h2, h3 {
   background-color: #fff;
   box-shadow: 0 0 0 4px rgba(155, 59, 69, 0.22);
 }
+.form-row input.is-invalid { border-color: #C23B3B; }
 /* An error wins over the focus colour, and stays visible while the field is focused */
-.form-row input.is-invalid,
-.form-row input.is-invalid:focus { border-color: #C23B3B; box-shadow: none; }
+.form-row input.is-invalid:focus { border-color: #C23B3B; box-shadow: 0 0 0 4px rgba(194, 59, 69, 0.25); }
 .form-error {
   margin-bottom: 1rem;
   padding: 0.75rem 1rem;
@@ -1219,6 +1263,24 @@ h1, h2, h3 {
   opacity: 0;
 }
 
+.form-note {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: var(--tint);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--body);
+}
+.form-note a { color: var(--action-text); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.form-nojs { display: none; margin-top: 1rem; font-size: 0.95rem; line-height: 1.5; }
+.form-nojs a { color: var(--action-text); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+html:not(.js) .quote-form > .btn { display: none; }
+html:not(.js) .form-nojs { display: block; }
+/* The script arrived late, after the plain layout had already been shown: the form works after all */
+/* (no element in front of the class here: followed by a dash, that combination reads as a file name to a file check) */
+:root.js-late .quote-form > .btn { display: inline-flex; }
+:root.js-late .form-nojs { display: none; }
 .form-foot { margin-top: 0.9rem; text-align: center; font-size: 0.88rem; color: var(--muted); }
 .form-success { display: grid; justify-items: center; gap: 0.5rem; padding: 2rem 0 1.5rem; text-align: center; }
 .form-success-icon {
@@ -1233,6 +1295,8 @@ h1, h2, h3 {
 }
 .form-success-icon .icon { width: 30px; height: 30px; }
 .form-success h3 { font-size: 1.8rem; }
+/* Focus is moved here when the request is received, so it is read out; the panel itself is the indication */
+.form-success h3:focus-visible { outline: none; }
 .form-success p { max-width: 26em; font-size: 1rem; }
 .form-success a { font-weight: 600; color: var(--action-text); text-decoration: underline; text-underline-offset: 3px; }
 
@@ -1306,7 +1370,9 @@ h1, h2, h3 {
 
 @media (max-width: 759px) {
   /* Room for the action bar, added to the footer so no light strip shows beneath it */
+  /* and kept clear when the page scrolls to something that receives focus */
   .site-footer { padding-bottom: calc(2.25rem + 84px + env(safe-area-inset-bottom, 0px)); }
+  html { scroll-padding-bottom: 96px; }
 }
 @media (min-width: 760px) {
   .mobile-bar { display: none; }
@@ -1331,6 +1397,8 @@ h1, h2, h3 {
   .areas-title { white-space: normal; }
   .hero-title { font-size: 2.2rem; }
   .quote-form .btn { padding-inline: 1rem; white-space: normal; }
+  .mobile-bar { padding-inline: 0.75rem; }
+  .mobile-bar .btn { padding-inline: 0.9rem; font-size: 0.95rem; }
 }
 
 /* ---------- Reduced motion ---------- */
@@ -1352,6 +1420,9 @@ h1, h2, h3 {
   .js .room-panel { display: block !important; }
   body { background: #fff; padding: 0; }
   .js .rv, .js .room-panel .tick { opacity: 1 !important; translate: none !important; scale: 1 !important; }
-  .section-dark { background: #fff; color: #000; }
-  .section-dark h2, .steps strong, .step-num { color: #000; }
+  .section-dark, .site-footer, .fit-item--cta, .offer-band { background: #fff !important; }
+  .section-dark *, .site-footer *, .fit-item--cta *, .offer-band, .offer-band * { color: #000 !important; }
+  .step-num { background: #fff; border-color: #000; }
+  .hero-chip, .about-badge { background: #fff !important; color: #000 !important; }
+  .hero-chip * { color: #000 !important; }
 }

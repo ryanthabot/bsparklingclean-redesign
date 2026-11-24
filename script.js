@@ -1,12 +1,14 @@
 /* ============================================================
    Brittney’s Sparkling Clean — interactions
-   - Header state + mobile menu
+   - Header state + mobile menu (focus moves into the card with it, and out with it)
    - Hero "gleam": a band of light passes over the photo once
    - Scroll reveal for sections and the room-list ticks
    - Room picker: shows the list for one room at a time
    - Mobile action bar (email + estimate)
    - Estimate form: POST to api/inquiry (Cloudflare Pages Function →
-     Resend); falls back to a mailto: link when the API isn't there.
+     Resend). If the server says something is wrong with the details, the page
+     says so. On any other failure it opens the visitor's email program with
+     the message filled in, and leaves a way to send it on the page.
    ============================================================ */
 
 (function () {
@@ -17,6 +19,15 @@
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var INBOX = "info@bsparklingclean.com";
+
+  /* ---------- Tell the one-line script in <head> that this file has started ---------- */
+  // If it never starts (blocked, or the connection failed), that script takes the "js"
+  // flag away again after five seconds, and with it every "hidden until revealed" state.
+  window.__siteJsReady = true;
+  clearTimeout(window.__siteFallback);
+  // Arriving after that fallback has already shown everything (a very slow connection):
+  // the page keeps its plain, fully visible layout. Only the form is switched back on.
+  if (!document.documentElement.classList.contains("js")) document.documentElement.classList.add("js-late");
 
   /* ---------- Header state + mobile menu ---------- */
   var header = $(".site-header");
@@ -38,20 +49,41 @@
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
 
+    // Opening the card moves focus into it, on to its first link
     navToggle.addEventListener("click", function () {
-      setMenu(navToggle.getAttribute("aria-expanded") !== "true");
+      var open = navToggle.getAttribute("aria-expanded") !== "true";
+      setMenu(open);
+      if (open) {
+        var firstLink = nav.querySelector("a");
+        if (firstLink) firstLink.focus();
+      }
     });
 
-    // Close after choosing a link, or on Escape
+    // Choosing a link closes the card. It is hidden from now on, so focus goes back to
+    // the button instead of staying on a link that can no longer be seen.
     nav.addEventListener("click", function (e) {
-      if (e.target.closest("a")) setMenu(false);
+      if (e.target.closest("a")) {
+        setMenu(false);
+        navToggle.focus();
+      }
     });
+
+    // Escape closes it and returns focus to the button
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && header.classList.contains("is-open")) {
         setMenu(false);
         navToggle.focus();
       }
     });
+
+    // Tabbing past the button and the card closes it. A tap outside does the same,
+    // because focus then leaves the header.
+    header.addEventListener("focusout", function (e) {
+      if (!header.classList.contains("is-open")) return;
+      if (e.relatedTarget && header.contains(e.relatedTarget)) return;
+      setMenu(false);
+    });
+
     window.addEventListener("resize", function () {
       if (window.innerWidth >= 1024 && header.classList.contains("is-open")) setMenu(false);
     });
@@ -60,9 +92,8 @@
   /* ---------- Hero: the gleam ---------- */
   var gleam = $("#hero-gleam");
   var heroImg = $("#hero-img");
-  var dull = gleam && $(".gleam-dull", gleam);
 
-  if (gleam && heroImg && dull) {
+  if (gleam && heroImg) {
     var reveal = function () {
       gleam.classList.add("is-ready");
     };
@@ -70,7 +101,7 @@
       reveal();
     } else {
       var start = function () {
-        // Two frames so both copies are painted before the light begins
+        // Two frames so both copies of the photo are painted before the light begins
         requestAnimationFrame(function () {
           requestAnimationFrame(reveal);
         });
@@ -78,6 +109,7 @@
       if (heroImg.complete && heroImg.naturalWidth) start();
       else {
         heroImg.addEventListener("load", start, { once: true });
+        // A photo that failed is simply shown as it is; nothing waits for it
         heroImg.addEventListener("error", reveal, { once: true });
       }
     }
@@ -179,21 +211,59 @@
   var form = $("#estimate-form");
 
   if (form) {
+    var nameInput = $("#name");
     var phoneInput = $("#phone");
     var emailInput = $("#email");
     var errorBox = $("#form-error");
+    var noteBox = $("#form-note");
+    var contactFields = [nameInput, phoneInput, emailInput];
+    var defaultError = errorBox ? errorBox.textContent : "";
+    var serverMessage = false;
 
     var showReachError = function (show) {
-      if (errorBox) errorBox.hidden = !show;
+      if (errorBox) {
+        errorBox.textContent = defaultError;
+        errorBox.hidden = !show;
+      }
       [phoneInput, emailInput].forEach(function (input) {
         input.setAttribute("aria-invalid", String(show));
         if (show) input.classList.add("is-invalid"); else input.classList.remove("is-invalid");
       });
     };
 
-    [phoneInput, emailInput].forEach(function (input) {
-      input.addEventListener("input", function () { showReachError(false); });
+    var showNote = function (html) {
+      if (!noteBox) return;
+      noteBox.innerHTML = html;
+      noteBox.hidden = false;
+    };
+    var hideNote = function () {
+      if (!noteBox) return;
+      noteBox.hidden = true;
+      noteBox.textContent = "";
+    };
+
+    // What was wrong is cleared as soon as the visitor changes a field
+    form.addEventListener("input", function (e) {
+      hideNote();
+      if (e.target === phoneInput || e.target === emailInput) showReachError(false);
+      if (serverMessage && contactFields.indexOf(e.target) !== -1) {
+        serverMessage = false;
+        if (errorBox) errorBox.hidden = true;
+        contactFields.forEach(function (input) {
+          input.removeAttribute("aria-invalid");
+          input.classList.remove("is-invalid");
+        });
+      }
     });
+
+    // The form gives way to a confirmation; focus moves to it, because the button that
+    // had focus is gone
+    var succeed = function () {
+      var panel = successPanel();
+      form.replaceChildren(panel);
+      var heading = panel.querySelector("h3");
+      if (heading) heading.focus();
+    };
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -228,31 +298,43 @@
 
       // Honeypot tripped: pretend it worked, send nothing
       if (data.website) {
-        form.replaceChildren(successPanel());
+        succeed();
         return;
       }
 
       var btn = form.querySelector('button[type="submit"]');
       btn.disabled = true;
       btn.textContent = "Sending…";
+      hideNote();
 
-      var mailtoFallback = function () {
-        var subject = "Cleaning estimate request — " + (data.name || "new enquiry");
-        var lines = [
-          "Name: " + data.name,
-          "Phone: " + data.phone,
-          "Email: " + data.email,
-          "Town: " + data.town,
-          "How often: " + data.often,
-          "",
-          "Message:",
-          data.message
-        ].join("\n");
-        window.location.href = "mailto:" + INBOX +
-          "?subject=" + encodeURIComponent(subject) +
-          "&body=" + encodeURIComponent(lines);
+      // The same message, ready for the visitor's own email program
+      var subject = "Cleaning estimate request — " + (data.name || "new enquiry");
+      var lines = [
+        "Name: " + data.name,
+        "Phone: " + data.phone,
+        "Email: " + data.email,
+        "Town: " + data.town,
+        "How often: " + data.often,
+        "",
+        "Message:",
+        data.message
+      ].join("\r\n");   // Windows line ends, which every mail program shows as line breaks
+      var mailtoUrl = "mailto:" + INBOX +
+        "?subject=" + encodeURIComponent(subject) +
+        "&body=" + encodeURIComponent(lines);
+
+      var resetButton = function () {
         btn.disabled = false;
         btn.textContent = "Request my free estimate";
+      };
+
+      // Anything other than a slip in the details falls back to the visitor's email
+      // program, with the message filled in. The page says so too, in case no program opens.
+      var fallBack = function () {
+        window.location.href = mailtoUrl;
+        resetButton();
+        showNote("Your message did not go through, so we opened your email program with it filled in. " +
+          "If nothing opened, you can <a href=\"" + mailtoUrl + "\">send it from here</a>.");
       };
 
       fetch("api/inquiry", {
@@ -261,14 +343,38 @@
         body: JSON.stringify(data)
       })
         .then(function (res) {
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          return res.json();
+          return res.json()
+            .catch(function () { return null; })
+            .then(function (json) { return { ok: res.ok, status: res.status, json: json }; });
         })
-        .then(function (json) {
-          if (!json || json.ok === false) throw new Error("rejected");
-          form.replaceChildren(successPanel());
+        .then(function (result) {
+          if (result.ok && result.json && result.json.ok !== false) {
+            succeed();
+            return;
+          }
+          // The server found something wrong with the details: say so on the page, where
+          // it can be put right, instead of sending the visitor to an email program
+          if (result.status === 400 && result.json && typeof result.json.error === "string") {
+            resetButton();
+            serverMessage = true;
+            var field = /name/i.test(result.json.error) ? nameInput
+              : /email/i.test(result.json.error) ? emailInput : phoneInput;
+            contactFields.forEach(function (input) {
+              input.removeAttribute("aria-invalid");
+              input.classList.remove("is-invalid");
+            });
+            field.setAttribute("aria-invalid", "true");
+            field.classList.add("is-invalid");
+            if (errorBox) {
+              errorBox.textContent = result.json.error;
+              errorBox.hidden = false;
+            }
+            field.focus();
+            return;
+          }
+          fallBack();
         })
-        .catch(mailtoFallback);
+        .catch(fallBack);
     });
   }
 
@@ -278,7 +384,7 @@
     wrap.setAttribute("role", "status");
     wrap.innerHTML =
       '<span class="form-success-icon" aria-hidden="true"><svg class="icon"><use href="#i-check"></use></svg></span>' +
-      "<h3>Request received</h3>" +
+      "<h3 tabindex=\"-1\">Request received</h3>" +
       "<p>Thanks \u2014 we\u2019ll be in touch with your estimate as soon as possible.</p>" +
       "<p>Prefer to email? <a href=\"mailto:" + INBOX + "\">" + INBOX + "</a></p>";
     return wrap;

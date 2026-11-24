@@ -29,8 +29,15 @@
   <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- Progressive enhancement flag: animations and the room picker only run when JS is available -->
-  <script>document.documentElement.classList.add("js");</script>
+  <!-- Progressive enhancement flag: animations and the room picker only run when JS is available.
+       If script.js has not started within five seconds (blocked, or the connection failed), the
+       flag is taken away again, so nothing on the page can stay hidden. -->
+  <script>
+    document.documentElement.classList.add("js");
+    window.__siteFallback = setTimeout(function () {
+      if (!window.__siteJsReady) document.documentElement.classList.remove("js");
+    }, 5000);
+  </script>
 
   <script type="application/ld+json">
   {
@@ -87,6 +94,12 @@
         <span class="logo-text">Brittney’s Sparkling Clean</span>
       </a>
 
+      <!-- The button comes before the links it opens, so Tab moves from one into the other -->
+      <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
+        <svg class="icon icon-menu" aria-hidden="true"><use href="#i-menu"></use></svg>
+        <svg class="icon icon-close" aria-hidden="true"><use href="#i-x"></use></svg>
+      </button>
+
       <nav class="nav" id="site-nav" aria-label="Primary">
         <a href="#rooms">Rooms</a>
         <a href="#included">What’s included</a>
@@ -101,10 +114,6 @@
       <a href="mailto:info@bsparklingclean.com" class="header-mail"><svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg>Email us</a>
       <a href="#estimate" class="btn btn-primary header-cta">Get a free estimate</a>
 
-      <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
-        <svg class="icon icon-menu" aria-hidden="true"><use href="#i-menu"></use></svg>
-        <svg class="icon icon-close" aria-hidden="true"><use href="#i-x"></use></svg>
-      </button>
     </div>
   </header>
 
@@ -155,7 +164,7 @@
             <a href="mailto:info@bsparklingclean.com" class="btn btn-outline btn-lg"><svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg>Email us</a>
           </div>
 
-          <ul class="hero-facts">
+          <ul class="hero-facts" role="list">
             <li><strong>Free<br />estimate</strong><span>for your home</span></li>
             <li><strong>Solely<br />owned</strong><span>and operated</span></li>
             <li><strong>Mon–Fri<br />9am–4pm</strong><span>weekends upon request</span></li>
@@ -170,7 +179,7 @@
     <section class="areas" id="areas" aria-label="Service area">
       <div class="container areas-inner">
         <p class="areas-title"><svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg>Serving Durham Region</p>
-        <ul class="areas-list">
+        <ul class="areas-list" role="list">
           <li>Pickering</li>
           <li>Ajax</li>
           <li>Whitby</li>
@@ -205,7 +214,7 @@
               <p class="room-tag">Slumber party</p>
               <h3>Bedroom</h3>
               <p class="room-line">Let them enjoy their time while you enjoy yours!</p>
-              <a href="#included" class="room-link" data-room="bedroom"><strong>14 tasks</strong> <span>on the list</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+              <a href="#included" class="room-link" data-room="bedroom"><span class="sr-only">Bedroom: </span><strong>14 tasks</strong> <span>on the list</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
             </div>
           </article>
 
@@ -219,7 +228,7 @@
               <p class="room-tag">Movie night</p>
               <h3>Living room</h3>
               <p class="room-line">Don’t worry about the crumbs, this moment is yours. Let us clean the mess.</p>
-              <a href="#included" class="room-link" data-room="living"><strong>15 tasks</strong> <span>on the list</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+              <a href="#included" class="room-link" data-room="living"><span class="sr-only">Living room: </span><strong>15 tasks</strong> <span>on the list</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
             </div>
           </article>
 
@@ -233,7 +242,7 @@
               <p class="room-tag">Special events</p>
               <h3>Kitchen</h3>
               <p class="room-line">Have special plans? Don’t stress about impressing, you’ll be Sparkling Clean.</p>
-              <a href="#included" class="room-link" data-room="kitchen"><strong>17 tasks</strong> <span>on the list</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+              <a href="#included" class="room-link" data-room="kitchen"><span class="sr-only">Kitchen: </span><strong>17 tasks</strong> <span>on the list</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
             </div>
           </article>
 
@@ -247,7 +256,7 @@
               <p class="room-tag">Baby shower</p>
               <h3>Bathroom</h3>
               <p class="room-line">We use places a little more than others and don’t notice how beautiful they can be. We also ignore how ugly they can get as well.</p>
-              <a href="#included" class="room-link" data-room="bathroom"><strong>17 tasks</strong> <span>on the list</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+              <a href="#included" class="room-link" data-room="bathroom"><span class="sr-only">Bathroom: </span><strong>17 tasks</strong> <span>on the list</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
             </div>
           </article>
         </div>
@@ -276,9 +285,10 @@
           </div>
 
           <div class="room-panels">
-            <div class="room-panel is-active" id="room-every" role="group" aria-label="Included in every clean">
+            <div class="room-panel is-active" id="room-every">
+              <h3 class="room-title">Included in every clean</h3>
               <p class="room-note">These services are included in your clean but may not have been mentioned above.</p>
-              <ul>
+              <ul role="list">
                 <li style="--i:0"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Stairs</span> <span class="how">(Vacuumed and/or mopped)</span></li>
                 <li style="--i:1"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Laundry rooms</span> <span class="how">(Vacuumed and/or mopped)</span></li>
                 <li style="--i:2"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Hallways</span> <span class="how">(Vacuumed and/or mopped)</span></li>
@@ -288,8 +298,9 @@
               </ul>
             </div>
 
-            <div class="room-panel" id="room-bedroom" role="group" aria-label="Bedroom list">
-              <ul>
+            <div class="room-panel" id="room-bedroom">
+              <h3 class="room-title">Bedroom</h3>
+              <ul role="list">
                 <li style="--i:0"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Baseboards</span> <span class="how">(Hand washed or wiped, reachable without moving furniture)</span></li>
                 <li style="--i:1"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Blinds</span> <span class="how">(Vacuumed, dusted and/or wiped)</span></li>
                 <li style="--i:2"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Ceiling fan blades</span> <span class="how">(Hand washed or wiped)</span></li>
@@ -307,8 +318,9 @@
               </ul>
             </div>
 
-            <div class="room-panel" id="room-living" role="group" aria-label="Living room list">
-              <ul>
+            <div class="room-panel" id="room-living">
+              <h3 class="room-title">Living room</h3>
+              <ul role="list">
                 <li style="--i:0"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Baseboards</span> <span class="how">(Hand washed or wiped, reachable without moving furniture)</span></li>
                 <li style="--i:1"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Blinds</span> <span class="how">(Vacuumed, dusted or wiped)</span></li>
                 <li style="--i:2"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Ceiling fan blades</span> <span class="how">(Hand washed or wiped)</span></li>
@@ -327,8 +339,9 @@
               </ul>
             </div>
 
-            <div class="room-panel" id="room-kitchen" role="group" aria-label="Kitchen list">
-              <ul>
+            <div class="room-panel" id="room-kitchen">
+              <h3 class="room-title">Kitchen</h3>
+              <ul role="list">
                 <li style="--i:0"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Backsplashes</span> <span class="how">(Washed)</span></li>
                 <li style="--i:1"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Baseboards</span> <span class="how">(Hand washed or wiped, reachable without moving furniture)</span></li>
                 <li style="--i:2"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Blinds</span> <span class="how">(Vacuumed, dusted or wiped)</span></li>
@@ -349,8 +362,9 @@
               </ul>
             </div>
 
-            <div class="room-panel" id="room-bathroom" role="group" aria-label="Bathroom list">
-              <ul>
+            <div class="room-panel" id="room-bathroom">
+              <h3 class="room-title">Bathroom</h3>
+              <ul role="list">
                 <li style="--i:0"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Backsplashes</span> <span class="how">(Scrubbed &amp; sanitized with product)</span></li>
                 <li style="--i:1"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Baseboards</span> <span class="how">(Hand washed or wiped, reachable without moving furniture)</span></li>
                 <li style="--i:2"><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="task">Bathtubs</span> <span class="how">(Double scrubbed if build-up, with product)</span></li>
@@ -404,7 +418,7 @@
               <h3>Add-ons</h3>
               <p class="quote-big">Cost extra</p>
             </div>
-            <ul class="addon-list">
+            <ul class="addon-list" role="list">
               <li><span>Fridge deep clean</span> <span class="addon-how">Interior/exterior, without reorganizing</span></li>
               <li><span>Stove deep clean</span> <span class="addon-how">Interior/exterior, degreased</span></li>
               <li><span>Microwave deep clean</span> <span class="addon-how">Interior/exterior, degreased</span></li>
@@ -419,7 +433,7 @@
               <h3>Scheduling</h3>
               <p class="quote-big">Flexible</p>
             </div>
-            <ul class="chip-list">
+            <ul class="chip-list" role="list">
               <li>Weekly</li>
               <li>Bi-weekly</li>
               <li>Tri-weekly</li>
@@ -452,7 +466,7 @@
           <h2 id="fit-title">Pick the one that sounds like your home.</h2>
         </header>
 
-        <ul class="fit-grid">
+        <ul class="fit-grid" role="list">
           <li class="fit-item rv">
             <span class="fit-icon"><svg class="icon" aria-hidden="true"><use href="#i-feather"></use></svg></span>
             <h3>Light clean</h3>
@@ -526,7 +540,7 @@
           <p class="eyebrow eyebrow-light"><svg class="icon" aria-hidden="true"><use href="#i-sparkles"></use></svg>Get a free estimate</p>
           <h2 id="estimate-title">Tell us about your home.</h2>
 
-          <ol class="steps">
+          <ol class="steps" role="list">
             <li>
               <span class="step-num" aria-hidden="true">1</span>
               <div><strong>Send a request</strong><p>The form takes about a minute, or email us.</p></div>
@@ -556,11 +570,11 @@
           <div class="form-cols">
             <div class="form-row">
               <label for="phone">Phone</label>
-              <input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="tel" />
+              <input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="tel" aria-describedby="form-error" />
             </div>
             <div class="form-row">
               <label for="email">Email</label>
-              <input type="email" id="email" name="email" autocomplete="email" inputmode="email" />
+              <input type="email" id="email" name="email" autocomplete="email" inputmode="email" aria-describedby="form-error" />
             </div>
           </div>
 
@@ -605,8 +619,11 @@
           <!-- Honeypot: hidden from people, bait for spam bots -->
           <input type="text" id="website" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
 
+          <p class="form-note" id="form-note" role="status" hidden></p>
+
           <button type="submit" class="btn btn-primary btn-lg btn-block">Request my free estimate</button>
           <p class="form-foot">We will get back to you as soon as possible.</p>
+          <p class="form-nojs">This form needs JavaScript, which is switched off in your browser. You can still reach us by email at <a href="mailto:info@bsparklingclean.com">info@bsparklingclean.com</a>.</p>
         </form>
 
       </div>

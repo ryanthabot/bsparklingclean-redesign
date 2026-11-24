@@ -5,12 +5,22 @@
 const INBOX = "info@bsparklingclean.com";
 const FROM = "Brittney's Sparkling Clean <hello@bsparklingclean.com>";
 
-const CLEAN = (s, max) => String(s || "").trim().slice(0, max);
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Anything that is not a string counts as empty. Line breaks are folded into spaces in
+// the values that end up on one line (the name reaches the email's subject), and kept
+// in the message itself.
+const ONE_LINE = (s, max) => (typeof s === "string" ? s : "").replace(/[\r\n]+/g, " ").trim().slice(0, max);
+const TEXT = (s, max) => (typeof s === "string" ? s : "").replace(/\r\n?/g, "\n").trim().slice(0, max);
+// The same test the browser's email field makes: some text, an @, some text
+const EMAIL_RE = /^[^\s@]+@[^\s@]+$/;
+const MAX_BODY = 10 * 1024;
 
 export async function onRequestPost({ request, env }) {
   if (!env.RESEND_API_KEY) {
     return json({ ok: false, error: "Server not configured." }, 500);
+  }
+
+  if (Number(request.headers.get("content-length")) > MAX_BODY) {
+    return json({ ok: false, error: "That message is too long. Please shorten it and try again." }, 413);
   }
 
   let body;
@@ -19,13 +29,16 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return json({ ok: false, error: "Bad request." }, 400);
   }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return json({ ok: false, error: "Bad request." }, 400);
+  }
 
   // Honeypot: bots fill hidden fields — silently accept and drop.
-  if (CLEAN(body.website, 100)) return json({ ok: true });
+  if (ONE_LINE(body.website, 100)) return json({ ok: true });
 
-  const name = CLEAN(body.name, 80);
-  const email = CLEAN(body.email, 120);
-  const phone = CLEAN(body.phone, 30);
+  const name = ONE_LINE(body.name, 80);
+  const email = ONE_LINE(body.email, 120);
+  const phone = ONE_LINE(body.phone, 30);
 
   if (name.length < 2) {
     return json({ ok: false, error: "Please add your name." }, 400);
@@ -37,10 +50,10 @@ export async function onRequestPost({ request, env }) {
     return json({ ok: false, error: "Add a phone number or an email so we can reach you." }, 400);
   }
 
-  const message = CLEAN(body.message, 2000);
+  const message = TEXT(body.message, 2000);
   const fields = {
-    Town: CLEAN(body.town, 50),
-    "How often": CLEAN(body.often, 50),
+    Town: ONE_LINE(body.town, 50),
+    "How often": ONE_LINE(body.often, 50),
   };
 
   const lines = [`Name: ${name}`];
