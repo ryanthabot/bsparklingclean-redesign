@@ -37,7 +37,7 @@
   --deeper: #0A2542;
   --deep: #10355C;
   --body: #2F4A66;
-  --muted: #536880;
+  --muted: #4E6379;
   --action: #4DACFF;
   --action-hover: #6ABBFF;
   --action-text: #0A5BB8;
@@ -46,6 +46,12 @@
   --line: #E1E8F0;
   --line-strong: #C8D4E1;
   --input-border: #6F87A0; /* form fields only: 3.72:1 on white, above the WCAG minimum for a control's boundary */
+  /* Four of the colours above again, as red green blue numbers, for the few places that need
+     them see-through (a shadow, the header, a focus ring). Change them together. */
+  --porcelain-rgb: 247 250 253;
+  --deep-rgb: 16 53 92;
+  --highlight-rgb: 255 183 140;
+  --action-text-rgb: 10 91 184;
 
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -53,9 +59,9 @@
   --container: 1180px;
   --gutter: clamp(1.25rem, 4vw, 2.5rem);
 
-  --shadow-sm: 0 1px 2px rgba(16, 53, 92, 0.05), 0 8px 24px -12px rgba(16, 53, 92, 0.18);
-  --shadow-md: 0 24px 48px -24px rgba(16, 53, 92, 0.28);
-  --shadow-pop: 0 12px 32px -8px rgba(16, 53, 92, 0.24);
+  --shadow-sm: 0 1px 2px rgb(var(--deep-rgb) / 0.05), 0 8px 24px -12px rgb(var(--deep-rgb) / 0.18);
+  --shadow-md: 0 24px 48px -24px rgb(var(--deep-rgb) / 0.28);
+  --shadow-pop: 0 12px 32px -8px rgb(var(--deep-rgb) / 0.24);
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -219,7 +225,7 @@ h1, h2, h3 {
 .btn-block { width: 100%; }
 
 @media (hover: hover) {
-  .btn-primary:hover { background: var(--action-hover); transform: translateY(-1px); box-shadow: 0 10px 22px -10px rgba(16, 53, 92, 0.45); }
+  .btn-primary:hover { background: var(--action-hover); transform: translateY(-1px); box-shadow: 0 10px 22px -10px rgb(var(--deep-rgb) / 0.45); }
   .btn-outline:hover { border-color: var(--deep); transform: translateY(-1px); }
   .btn-dark:hover { background: var(--deeper); transform: translateY(-1px); }
 }
@@ -233,7 +239,7 @@ h1, h2, h3 {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(247, 250, 253, 0.9);
+  background: rgb(var(--porcelain-rgb) / 0.9);
   -webkit-backdrop-filter: blur(14px) saturate(1.5);
   backdrop-filter: blur(14px) saturate(1.5);
   border-bottom: 1px solid transparent;
@@ -503,7 +509,7 @@ h1, h2, h3 {
   width: 9%;
   display: none;
   fill: #fff;
-  filter: drop-shadow(0 0 6px rgba(255, 183, 140, 0.9));
+  filter: drop-shadow(0 0 6px rgb(var(--highlight-rgb) / 0.9));
   opacity: 0;
   translate: -50% -50%;
   pointer-events: none;
@@ -981,7 +987,8 @@ html:not(.js) .included-lead { display: none; }   /* every list is shown at once
 }
 .offer-num span { font-size: 0.3em; letter-spacing: -0.01em; }
 .offer-copy h3 { font-size: clamp(1.5rem, 5vw, 2rem); }
-.offer-copy p { margin-top: 0.3rem; font-size: 1rem; color: var(--body); }
+/* The band's sentence takes the band's own navy: a second, greyer tone here read as dull */
+.offer-copy p { margin-top: 0.3rem; font-size: 1rem; }
 
 @media (min-width: 640px) {
   .offer-band { grid-template-columns: auto 1fr; }
@@ -1260,7 +1267,7 @@ html:not(.js) .included-lead { display: none; }   /* every list is shown at once
   outline: none;
   border-color: var(--action-text);
   background-color: #fff;
-  box-shadow: 0 0 0 4px rgba(10, 91, 184, 0.22);
+  box-shadow: 0 0 0 4px rgb(var(--action-text-rgb) / 0.22);
 }
 .form-row input.is-invalid { border-color: #C23B3B; }
 /* An error wins over the focus colour, and stays visible while the field is focused */
@@ -1382,7 +1389,7 @@ html:not(.js) .form-nojs { display: block; }
   background: rgba(255, 255, 255, 0.96);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  box-shadow: 0 -8px 24px -16px rgba(16, 53, 92, 0.3);
+  box-shadow: 0 -8px 24px -16px rgb(var(--deep-rgb) / 0.3);
   visibility: hidden;
   transform: translateY(105%);
   transition: transform 0.35s var(--ease-out), visibility 0s linear 0.35s;
