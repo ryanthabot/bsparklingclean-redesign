@@ -389,11 +389,17 @@ h1, h2, h3 {
   .nav > a, .js .nav > a {
     display: inline-flex;
     padding: 0.65rem 0.2rem;
-    border-bottom: 2px solid transparent;
     border-radius: 0;
     font-size: 0.95rem;
     white-space: nowrap;
-    transition: color 0.2s ease, border-color 0.2s ease;
+    /* The hover underline, as a background that is nothing until it is hovered. (It used
+       to be a transparent bottom border, which Chrome drew as a dark line under every
+       link in stitched full-page captures.) */
+    background-image: linear-gradient(var(--action), var(--action));
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    background-size: 0 2px;
+    transition: color 0.2s ease, background-size 0.2s ease;
   }
   /* named with its phone form on purpose: that form outranks a bare class and would show here */
   .nav-extra, .js .nav-extra, .nav-toggle { display: none; }
@@ -427,11 +433,15 @@ h1, h2, h3 {
 }
 @media (hover: hover) {
   .nav > a:hover { color: var(--deep); }
-  .js .nav > a:hover { background: var(--porcelain); }
   .header-mail:hover { color: var(--action-text); }
 }
+/* In the dropdown card a hovered link gets a pale background */
+@media (hover: hover) and (max-width: 1023px) {
+  .js .nav > a:hover { background: var(--porcelain); }
+}
+/* In the wide header a hovered link gets the underline */
 @media (min-width: 1024px) and (hover: hover) {
-  .nav > a:hover, .js .nav > a:hover { background: none; border-bottom-color: var(--action); }
+  .nav > a:hover, .js .nav > a:hover { background-size: 100% 2px; }
 }
 
 /* ============================================================
@@ -796,6 +806,7 @@ h1, h2, h3 {
   color: var(--muted);
 }
 html:not(.js) .room-picker { display: none; }
+html:not(.js) .included-lead { display: none; }   /* every list is shown at once, so there is nothing to pick */
 /* With JavaScript off every list is shown; with it on, one at a time */
 .js .room-panel { display: none; }
 .js .room-panel.is-active { display: block; }
@@ -991,12 +1002,22 @@ html:not(.js) .room-picker { display: none; }
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
-    gap: 0.5rem 1.5rem;
+    gap: 0.5rem 1.25rem;
     padding: 1.1rem clamp(1.4rem, 3vw, 2rem);
   }
   .quote-card--schedule .quote-card-top { display: flex; align-items: baseline; gap: 0.6rem; }
+  /* "Scheduling" is kept for screen readers only: with it hidden the seven options fit on one row */
+  .quote-card--schedule .quote-card-top h3 {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
   .quote-card--schedule .quote-big { margin-top: 0; }
-  .quote-card--schedule .chip-list { margin-top: 0; }
+  .quote-card--schedule .chip-list { margin-top: 0; justify-content: center; }
   .quote-card--schedule .link-arrow { margin-top: 0; padding-top: 0; }
 }
 @media (hover: hover) {
@@ -1317,7 +1338,7 @@ html:not(.js) .form-nojs { display: block; }
 .footer-grid { display: grid; gap: 1.75rem; }
 .footer-brand { display: grid; gap: 1rem; justify-items: start; }
 /* The client's logo needs this much room to be readable */
-.footer-logo { width: 232px; height: auto; margin-left: -12px; }   /* pulls the faint glow of the logo's edge level with the name below */
+.footer-logo { width: 232px; height: auto; margin-left: -24px; }   /* the artwork starts 24px into the file; this puts it level with the name below */
 .footer-name {
   display: block;
   font-family: var(--font-display);
